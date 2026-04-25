@@ -72,29 +72,31 @@ DISPLAY_STRING ENDP
 GET_INPUT PROC
     mov ah, 01h             ; Function 01h: Read character from input
     int 21h                 ; Call DOS interrupt (result in AL)
-    call CONVERT_TO_UPPERCASE  ; Convert to uppercase if lowercase
-    ret                     ; Return to caller with input in AL
-GET_INPUT ENDP
-
-; ============================================================
-; PROCEDURE: CONVERT_TO_UPPERCASE
-; Purpose: Convert lowercase letters to uppercase
-; Input: AL = character to convert
-; Output: AL = converted character (uppercase if was lowercase)
-; Conversion Logic: If character is between 'a'-'z', subtract 20h
-; Modifies: AL register
-; ============================================================
-CONVERT_TO_UPPERCASE PROC
-    cmp al, 'a'             ; Check if AL is >= 'a'
-    jl NOT_LOWERCASE        ; If less than 'a', not lowercase, skip conversion
-    cmp al, 'z'             ; Check if AL is <= 'z'
-    jg NOT_LOWERCASE        ; If greater than 'z', not lowercase, skip conversion
-    sub al, 20h             ; Convert to uppercase by subtracting 20h (32 decimal)
+    
+    ; ========================================
+    ; Convert lowercase to uppercase
+    ; ========================================
+    cmp al, 'a'             ; Compare AL with 'a' (61h / 97 decimal)
+    jb NO_CONVERT           ; Jump if Below 'a' (unsigned comparison)
+    cmp al, 'z'             ; Compare AL with 'z' (7Ah / 122 decimal)
+    ja NO_CONVERT           ; Jump if Above 'z' (unsigned comparison)
+    sub al, 20h             ; If between 'a' and 'z', subtract 20h (32 decimal)
+                            ; This converts to uppercase:
                             ; 'a' (61h) - 20h = 'A' (41h)
+                            ; 'b' (62h) - 20h = 'B' (42h)
                             ; 'z' (7Ah) - 20h = 'Z' (5Ah)
-NOT_LOWERCASE:
+NO_CONVERT:
+    ; ========================================
+    ; Display the converted character for debug
+    ; ========================================
+    mov dl, al              ; Move the character to DL for display
+    push ax                 ; Preserve AX
+    mov ah, 02h             ; Function 02h: Display single character
+    int 21h                 ; Display the character (for verification)
+    pop ax                  ; Restore AX (AL now has the converted character)
+    
     ret                     ; Return to caller with converted character in AL
-CONVERT_TO_UPPERCASE ENDP
+GET_INPUT ENDP
 
 ; ============================================================
 ; PROCEDURE: CHECK_ANSWER
