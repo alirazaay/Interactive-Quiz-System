@@ -49,6 +49,266 @@
 ; ============================================================
 .CODE
 
+; ============================================================
+; PROCEDURE: DISPLAY_STRING
+; Purpose: Display a string on screen using INT 21h (AH=09h)
+; Input: DX = address of string to display (must be $-terminated)
+; Output: None
+; Modifies: AH register
+; ============================================================
+DISPLAY_STRING PROC
+    mov ah, 09h             ; Function 09h: Display string
+    int 21h                 ; Call DOS interrupt to display string
+    ret                     ; Return to caller
+DISPLAY_STRING ENDP
+
+; ============================================================
+; PROCEDURE: GET_INPUT
+; Purpose: Read a single character from input
+; Input: None
+; Output: AL = character read from input
+; Modifies: AH, AL registers
+; ============================================================
+GET_INPUT PROC
+    mov ah, 01h             ; Function 01h: Read character from input
+    int 21h                 ; Call DOS interrupt (result in AL)
+    ret                     ; Return to caller with input in AL
+GET_INPUT ENDP
+
+; ============================================================
+; PROCEDURE: CHECK_ANSWER
+; Purpose: Check user answer against correct answer
+; Input: AL = user's answer
+;        BL = correct answer
+; Output: None (modifies score and displays result)
+; Modifies: AH, AL, DX registers
+; ============================================================
+CHECK_ANSWER PROC
+    cmp al, bl              ; Compare user answer (AL) with correct answer (BL)
+    je ANSWER_CORRECT       ; Jump if correct
+    jne ANSWER_WRONG        ; Jump if wrong
+    
+ANSWER_CORRECT:
+    ; ========================================
+    ; Display Correct Answer Message
+    ; ========================================
+    lea dx, correctMsg      ; Load address of correct message
+    call DISPLAY_STRING     ; Call DISPLAY_STRING procedure
+    
+    ; Display newline
+    lea dx, newline         ; Load address of newline
+    call DISPLAY_STRING     ; Call DISPLAY_STRING procedure
+    
+    ; Increment score for correct answer
+    mov al, [score]         ; Load current score into AL
+    inc al                  ; Increment score (AL = AL + 1)
+    mov [score], al         ; Store updated score back to score variable
+    ret                     ; Return to caller
+    
+ANSWER_WRONG:
+    ; ========================================
+    ; Display Wrong Answer Message
+    ; ========================================
+    lea dx, wrongMsg        ; Load address of wrong message
+    call DISPLAY_STRING     ; Call DISPLAY_STRING procedure
+    
+    ; Display newline
+    lea dx, newline         ; Load address of newline
+    call DISPLAY_STRING     ; Call DISPLAY_STRING procedure
+    ret                     ; Return to caller (without incrementing score)
+    
+CHECK_ANSWER ENDP
+
+; ============================================================
+; PROCEDURE: Q1
+; Purpose: Execute Question 1
+; Input: None
+; Output: None
+; Modifies: Multiple registers (uses PUSH/POP to preserve)
+; ============================================================
+Q1 PROC
+    ; ========================================
+    ; Display Question 1
+    ; ========================================
+    lea dx, question1       ; Load address of question1
+    call DISPLAY_STRING     ; Display question
+    
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    ; ========================================
+    ; Display Q1 Answer Options
+    ; ========================================
+    lea dx, q1_optionA      ; Load address of option A
+    call DISPLAY_STRING     ; Display option
+    
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    lea dx, q1_optionB      ; Load address of option B
+    call DISPLAY_STRING     ; Display option
+    
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    lea dx, q1_optionC      ; Load address of option C
+    call DISPLAY_STRING     ; Display option
+    
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    lea dx, q1_optionD      ; Load address of option D
+    call DISPLAY_STRING     ; Display option
+    
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    ; ========================================
+    ; Display Input Prompt
+    ; ========================================
+    lea dx, inputMsg        ; Load address of input prompt
+    call DISPLAY_STRING     ; Display prompt
+    
+    ; ========================================
+    ; Get User Input for Q1
+    ; ========================================
+    call GET_INPUT          ; Call GET_INPUT procedure (returns answer in AL)
+    
+    ; Display newline after input
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    ; ========================================
+    ; Check Q1 Answer (Correct answer: C)
+    ; ========================================
+    push ax                 ; Preserve AL register
+    mov bl, 'C'             ; Load correct answer 'C' into BL
+    pop ax                  ; Restore AL (user's answer)
+    call CHECK_ANSWER       ; Call CHECK_ANSWER procedure
+    
+    ret                     ; Return to caller
+Q1 ENDP
+
+; ============================================================
+; PROCEDURE: Q2
+; Purpose: Execute Question 2
+; Input: None
+; Output: None
+; Modifies: Multiple registers (uses PUSH/POP to preserve)
+; ============================================================
+Q2 PROC
+    ; Display newline for spacing
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    ; ========================================
+    ; Display Question 2
+    ; ========================================
+    lea dx, question2       ; Load address of question2
+    call DISPLAY_STRING     ; Display question
+    
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    ; ========================================
+    ; Display Q2 Answer Options
+    ; ========================================
+    lea dx, q2_optionA      ; Load address of option A
+    call DISPLAY_STRING     ; Display option
+    
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    lea dx, q2_optionB      ; Load address of option B
+    call DISPLAY_STRING     ; Display option
+    
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    lea dx, q2_optionC      ; Load address of option C
+    call DISPLAY_STRING     ; Display option
+    
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    lea dx, q2_optionD      ; Load address of option D
+    call DISPLAY_STRING     ; Display option
+    
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    ; ========================================
+    ; Display Input Prompt
+    ; ========================================
+    lea dx, inputMsg        ; Load address of input prompt
+    call DISPLAY_STRING     ; Display prompt
+    
+    ; ========================================
+    ; Get User Input for Q2
+    ; ========================================
+    call GET_INPUT          ; Call GET_INPUT procedure (returns answer in AL)
+    
+    ; Display newline after input
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    ; ========================================
+    ; Check Q2 Answer (Correct answer: B)
+    ; ========================================
+    push ax                 ; Preserve AL register
+    mov bl, 'B'             ; Load correct answer 'B' into BL
+    pop ax                  ; Restore AL (user's answer)
+    call CHECK_ANSWER       ; Call CHECK_ANSWER procedure
+    
+    ret                     ; Return to caller
+Q2 ENDP
+
+; ============================================================
+; PROCEDURE: DISPLAY_FINAL_RESULTS
+; Purpose: Display final quiz results and score
+; Input: None (accesses score variable)
+; Output: None
+; Modifies: AH, AL, DL registers
+; ============================================================
+DISPLAY_FINAL_RESULTS PROC
+    ; Display newline for spacing
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    ; ========================================
+    ; Display "Quiz Finished!"
+    ; ========================================
+    lea dx, quizFinished    ; Load address of quiz finished message
+    call DISPLAY_STRING     ; Display message
+    
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    ; ========================================
+    ; Display Score Message
+    ; ========================================
+    lea dx, scoreMsg        ; Load address of score message
+    call DISPLAY_STRING     ; Display message
+    
+    ; ========================================
+    ; Convert Score to ASCII and Display
+    ; ========================================
+    mov al, [score]         ; Load score value into AL
+    add al, 30h             ; Add 30h to convert digit to ASCII
+    mov dl, al              ; Move ASCII value to DL for display
+    mov ah, 02h             ; Function 02h: Display single character
+    int 21h                 ; Call DOS interrupt to display the score
+    
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
+    
+    ret                     ; Return to caller
+DISPLAY_FINAL_RESULTS ENDP
+
+; ============================================================
+; PROCEDURE: main
+; Purpose: Main entry point of the program
+; ============================================================
 main PROC
     ; ========================================
     ; Initialize Data Segment Register
@@ -57,342 +317,57 @@ main PROC
     mov ds, ax              ; Move it to DS register for string access
     
     ; ========================================
-    ; Display Message 1: Welcome message
+    ; Display Welcome Messages
     ; ========================================
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, msg1            ; Load effective address of msg1 into DX
-    int 21h                 ; Call DOS interrupt to display string
+    lea dx, msg1            ; Load address of msg1
+    call DISPLAY_STRING     ; Display welcome message
     
-    ; Display newline after message 1
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
     
-    ; ========================================
-    ; Display Message 2: Prompt for key press
-    ; ========================================
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, msg2            ; Load address of msg2 into DX
-    int 21h                 ; Call DOS interrupt to display string
+    lea dx, msg2            ; Load address of msg2
+    call DISPLAY_STRING     ; Display key press prompt
     
-    ; Display newline after message 2
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
     
     ; ========================================
     ; Wait for user key press
     ; ========================================
-    mov ah, 01h             ; Function 01h: Read character from input
-    int 21h                 ; Call DOS interrupt (stores key in AL register)
+    call GET_INPUT          ; Call GET_INPUT procedure
     
-    ; Display newline after key press
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
     
     ; ========================================
-    ; Display Message 3: Quiz Starting
+    ; Display Quiz Starting Message
     ; ========================================
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, msg3            ; Load address of msg3 into DX
-    int 21h                 ; Call DOS interrupt to display string
+    lea dx, msg3            ; Load address of msg3
+    call DISPLAY_STRING     ; Display quiz starting message
     
-    ; Display newline after message 3
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
+    lea dx, newline         ; Load newline address
+    call DISPLAY_STRING     ; Display newline
     
     ; ========================================
-    ; QUESTION 1
+    ; Execute Question 1
     ; ========================================
-    jmp Q1                  ; Jump to Question 1
-    
-Q1:
-    ; ========================================
-    ; Display Question 1
-    ; ========================================
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, question1       ; Load address of question1 into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Display newline after question
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
+    call Q1                 ; Call Q1 procedure
     
     ; ========================================
-    ; Display Q1 Answer Options
+    ; Execute Question 2
     ; ========================================
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, q1_optionA      ; Load address of option A into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Display newline after option A
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, q1_optionB      ; Load address of option B into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Display newline after option B
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, q1_optionC      ; Load address of option C into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Display newline after option C
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, q1_optionD      ; Load address of option D into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Display newline after option D
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
+    call Q2                 ; Call Q2 procedure
     
     ; ========================================
-    ; Display Input Prompt for Q1
+    ; Display Final Results
     ; ========================================
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, inputMsg        ; Load address of input prompt into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; ========================================
-    ; Get User Input for Q1
-    ; ========================================
-    mov ah, 01h             ; Function 01h: Read character from input
-    int 21h                 ; Call DOS interrupt (stores key in AL register)
-                            ; AL register now contains user's answer choice
-    
-    ; Display newline after input
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; ========================================
-    ; Check Q1 Answer (Correct answer: C)
-    ; ========================================
-    cmp al, 'C'             ; Compare AL with 'C' (correct answer for Q1)
-    je Q1_CORRECT           ; Jump if correct
-    jne Q1_WRONG            ; Jump if wrong
-    
-Q1_CORRECT:
-    ; ========================================
-    ; Display Correct Answer Message for Q1
-    ; ========================================
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, correctMsg      ; Load address of correct message into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Display newline
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Increment score for correct answer
-    mov al, [score]         ; Load current score into AL
-    inc al                  ; Increment score (AL = AL + 1)
-    mov [score], al         ; Store updated score back to score variable
-    
-    ; Jump to Q2
-    jmp Q2
-    
-Q1_WRONG:
-    ; ========================================
-    ; Display Wrong Answer Message for Q1
-    ; ========================================
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, wrongMsg        ; Load address of wrong message into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Display newline
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Jump to Q2 (without incrementing score)
-    jmp Q2
-    
-    ; ========================================
-    ; QUESTION 2
-    ; ========================================
-Q2:
-    ; Display newline for spacing
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; ========================================
-    ; Display Question 2
-    ; ========================================
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, question2       ; Load address of question2 into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Display newline after question
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; ========================================
-    ; Display Q2 Answer Options
-    ; ========================================
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, q2_optionA      ; Load address of option A into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Display newline after option A
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, q2_optionB      ; Load address of option B into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Display newline after option B
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, q2_optionC      ; Load address of option C into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Display newline after option C
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, q2_optionD      ; Load address of option D into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Display newline after option D
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; ========================================
-    ; Display Input Prompt for Q2
-    ; ========================================
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, inputMsg        ; Load address of input prompt into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; ========================================
-    ; Get User Input for Q2
-    ; ========================================
-    mov ah, 01h             ; Function 01h: Read character from input
-    int 21h                 ; Call DOS interrupt (stores key in AL register)
-                            ; AL register now contains user's answer choice
-    
-    ; Display newline after input
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; ========================================
-    ; Check Q2 Answer (Correct answer: B)
-    ; ========================================
-    cmp al, 'B'             ; Compare AL with 'B' (correct answer for Q2)
-    je Q2_CORRECT           ; Jump if correct
-    jne Q2_WRONG            ; Jump if wrong
-    
-Q2_CORRECT:
-    ; ========================================
-    ; Display Correct Answer Message for Q2
-    ; ========================================
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, correctMsg      ; Load address of correct message into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Display newline
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Increment score for correct answer
-    mov al, [score]         ; Load current score into AL
-    inc al                  ; Increment score (AL = AL + 1)
-    mov [score], al         ; Store updated score back to score variable
-    
-    ; Jump to display final results
-    jmp DISPLAY_RESULTS
-    
-Q2_WRONG:
-    ; ========================================
-    ; Display Wrong Answer Message for Q2
-    ; ========================================
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, wrongMsg        ; Load address of wrong message into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Display newline
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Jump to display final results (without incrementing score)
-    jmp DISPLAY_RESULTS
-    
-    ; ========================================
-    ; DISPLAY FINAL RESULTS
-    ; ========================================
-DISPLAY_RESULTS:
-    ; Display newline for spacing
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; ========================================
-    ; Display "Quiz Finished!"
-    ; ========================================
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, quizFinished    ; Load address of quiz finished message into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; Display newline
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; ========================================
-    ; Display Score Message
-    ; ========================================
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, scoreMsg        ; Load address of score message into DX
-    int 21h                 ; Call DOS interrupt
-    
-    ; ========================================
-    ; Convert Score to ASCII and Display
-    ; ========================================
-    mov al, [score]         ; Load score value into AL
-    add al, 30h             ; Add 30h to convert digit to ASCII (0->30h, 1->31h, etc.)
-    mov dl, al              ; Move ASCII value to DL for display
-    mov ah, 02h             ; Function 02h: Display single character
-    int 21h                 ; Call DOS interrupt to display the score
-    
-    ; Display newline
-    mov ah, 09h             ; Function 09h: Display string
-    lea dx, newline         ; Load address of newline into DX
-    int 21h                 ; Call DOS interrupt
+    call DISPLAY_FINAL_RESULTS  ; Call DISPLAY_FINAL_RESULTS procedure
     
     ; ========================================
     ; Terminate the program
     ; ========================================
     mov ah, 4Ch             ; Function 4Ch: Terminate program
-    mov al, 0               ; Exit code: 0 (indicates successful execution)
+    mov al, 0               ; Exit code: 0 (successful execution)
     int 21h                 ; Call DOS interrupt to exit
     
 main ENDP
