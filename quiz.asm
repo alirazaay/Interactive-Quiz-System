@@ -66,14 +66,35 @@ DISPLAY_STRING ENDP
 ; PROCEDURE: GET_INPUT
 ; Purpose: Read a single character from input
 ; Input: None
-; Output: AL = character read from input
+; Output: AL = character read from input (converted to uppercase if lowercase)
 ; Modifies: AH, AL registers
 ; ============================================================
 GET_INPUT PROC
     mov ah, 01h             ; Function 01h: Read character from input
     int 21h                 ; Call DOS interrupt (result in AL)
+    call CONVERT_TO_UPPERCASE  ; Convert to uppercase if lowercase
     ret                     ; Return to caller with input in AL
 GET_INPUT ENDP
+
+; ============================================================
+; PROCEDURE: CONVERT_TO_UPPERCASE
+; Purpose: Convert lowercase letters to uppercase
+; Input: AL = character to convert
+; Output: AL = converted character (uppercase if was lowercase)
+; Conversion Logic: If character is between 'a'-'z', subtract 20h
+; Modifies: AL register
+; ============================================================
+CONVERT_TO_UPPERCASE PROC
+    cmp al, 'a'             ; Check if AL is >= 'a'
+    jl NOT_LOWERCASE        ; If less than 'a', not lowercase, skip conversion
+    cmp al, 'z'             ; Check if AL is <= 'z'
+    jg NOT_LOWERCASE        ; If greater than 'z', not lowercase, skip conversion
+    sub al, 20h             ; Convert to uppercase by subtracting 20h (32 decimal)
+                            ; 'a' (61h) - 20h = 'A' (41h)
+                            ; 'z' (7Ah) - 20h = 'Z' (5Ah)
+NOT_LOWERCASE:
+    ret                     ; Return to caller with converted character in AL
+CONVERT_TO_UPPERCASE ENDP
 
 ; ============================================================
 ; PROCEDURE: CHECK_ANSWER
@@ -172,7 +193,8 @@ Q1 PROC
     ; ========================================
     ; Get User Input for Q1
     ; ========================================
-    call GET_INPUT          ; Call GET_INPUT procedure (returns answer in AL)
+    call GET_INPUT          ; Call GET_INPUT procedure
+                            ; (returns uppercase answer in AL)
     
     ; Display newline after input
     lea dx, newline         ; Load newline address
@@ -183,7 +205,7 @@ Q1 PROC
     ; ========================================
     push ax                 ; Preserve AL register
     mov bl, 'C'             ; Load correct answer 'C' into BL
-    pop ax                  ; Restore AL (user's answer)
+    pop ax                  ; Restore AL (user's answer, now uppercase)
     call CHECK_ANSWER       ; Call CHECK_ANSWER procedure
     
     ret                     ; Return to caller
@@ -246,7 +268,8 @@ Q2 PROC
     ; ========================================
     ; Get User Input for Q2
     ; ========================================
-    call GET_INPUT          ; Call GET_INPUT procedure (returns answer in AL)
+    call GET_INPUT          ; Call GET_INPUT procedure
+                            ; (returns uppercase answer in AL)
     
     ; Display newline after input
     lea dx, newline         ; Load newline address
@@ -257,7 +280,7 @@ Q2 PROC
     ; ========================================
     push ax                 ; Preserve AL register
     mov bl, 'B'             ; Load correct answer 'B' into BL
-    pop ax                  ; Restore AL (user's answer)
+    pop ax                  ; Restore AL (user's answer, now uppercase)
     call CHECK_ANSWER       ; Call CHECK_ANSWER procedure
     
     ret                     ; Return to caller
