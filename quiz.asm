@@ -286,6 +286,7 @@ CHECK_ANSWER ENDP
 ; ============================================================
 DISPLAY_QUESTION PROC
     push ax                 ; Preserve registers
+    push bx                 ; CRITICAL: Save BX (will be used as base for indexing)
     push dx
     push si
     
@@ -293,51 +294,56 @@ DISPLAY_QUESTION PROC
     lea dx, newline
     call DISPLAY_STRING
     
+    ; ========================================
     ; Get question text address from lookup table
-    ; q_texts[BX] = q_texts + BX*2 (word = 2 bytes)
+    ; Use: SI = offset, BX = base address
+    ; ========================================
     mov si, bx              ; SI = question index
-    shl si, 1               ; SI = SI*2 (convert to word offset)
-    lea ax, [q_texts]       ; AX = address of q_texts array
-    mov dx, [ax + si]       ; DX = q_texts[SI] (question address)
+    shl si, 1               ; SI = SI*2 (convert index to word offset)
+    
+    ; Get Option A address (q_optAs table)
+    lea bx, q_texts         ; BX = address of q_texts array (valid: LEA with offset)
+    mov dx, [bx + si]       ; DX = q_texts[index] - VALID: [BX + SI] is allowed
     call DISPLAY_STRING     ; Display question
     
     lea dx, newline
     call DISPLAY_STRING
     
     ; Get Option A address
-    lea ax, [q_optAs]
-    mov dx, [ax + si]       ; DX = q_optAs[SI]
+    lea bx, q_optAs         ; BX = address of q_optAs array
+    mov dx, [bx + si]       ; DX = q_optAs[index]
     call DISPLAY_STRING
     
     lea dx, newline
     call DISPLAY_STRING
     
     ; Get Option B address
-    lea ax, [q_optBs]
-    mov dx, [ax + si]
+    lea bx, q_optBs
+    mov dx, [bx + si]
     call DISPLAY_STRING
     
     lea dx, newline
     call DISPLAY_STRING
     
     ; Get Option C address
-    lea ax, [q_optCs]
-    mov dx, [ax + si]
+    lea bx, q_optCs
+    mov dx, [bx + si]
     call DISPLAY_STRING
     
     lea dx, newline
     call DISPLAY_STRING
     
     ; Get Option D address
-    lea ax, [q_optDs]
-    mov dx, [ax + si]
+    lea bx, q_optDs
+    mov dx, [bx + si]
     call DISPLAY_STRING
     
     lea dx, newline
     call DISPLAY_STRING
     
-    pop si                  ; Restore registers
+    pop si                  ; Restore registers (in reverse order)
     pop dx
+    pop bx
     pop ax
     ret
 DISPLAY_QUESTION ENDP
@@ -349,15 +355,16 @@ DISPLAY_QUESTION ENDP
 ; Output: Updates score variable
 ; ============================================================
 QUIZ_LOOP PROC
-    mov bx, 0              ; BX = question counter (0-9)
+    mov cx, 0              ; CX = question counter (0-9)
     
 LOOP_QUESTIONS:
-    cmp bx, [total_questions]  ; Are we done with all questions?
-    jge LOOP_END            ; If BX >= total_questions, exit loop
+    cmp cx, 10             ; Are we done with all 10 questions?
+    jge LOOP_END           ; If CX >= 10, exit loop
     
     ; ========================================
     ; Display current question
     ; ========================================
+    mov bx, cx             ; BX = question index for DISPLAY_QUESTION
     call DISPLAY_QUESTION  ; BX contains question index
     
     ; ========================================
@@ -368,7 +375,7 @@ LOOP_QUESTIONS:
     
     call GET_INPUT         ; AL = user's answer (A-D)
     
-    ; CRITICAL: Save AL before DISPLAY_STRING
+    ; CRITICAL: Save AL before calling DISPLAY_STRING
     push ax                ; Save user's answer
     
     lea dx, newline
@@ -379,9 +386,9 @@ LOOP_QUESTIONS:
     ; ========================================
     ; Get correct answer from lookup table
     ; ========================================
-    mov si, bx
-    lea ax, [q_answers]
-    mov bl, [ax + si]      ; BL = correct answer for question BX
+    mov si, cx             ; SI = question index
+    lea bx, q_answers      ; BX = address of q_answers array
+    mov bl, [bx + si]      ; BL = correct answer for question CX
     
     ; ========================================
     ; Check answer (AL = user input, BL = correct answer)
@@ -391,7 +398,7 @@ LOOP_QUESTIONS:
     ; ========================================
     ; Move to next question
     ; ========================================
-    inc bx
+    inc cx
     jmp LOOP_QUESTIONS
     
 LOOP_END:
