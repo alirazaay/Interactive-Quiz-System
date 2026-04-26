@@ -70,12 +70,19 @@ DISPLAY_STRING ENDP
 ; Modifies: AH, AL, CL registers
 ; ============================================================
 GET_INPUT PROC
+READ_CHAR:
     mov ah, 01h             ; Function 01h: Read character from input
     int 21h                 ; Call DOS interrupt (result in AL, auto-echoed)
     
     ; ========================================
+    ; Skip Enter key (13 = CR) if encountered
+    ; ========================================
+    cmp al, 13              ; Is it Enter key (carriage return)?
+    je READ_CHAR            ; If yes, read next character
+    
+    ; ========================================
     ; Convert lowercase to uppercase
-    ; Explicit logic: if AL is 'a'-'z', subtract 20h
+    ; Explicit logic: if AL is 'a'-'z', subtract 32
     ; ========================================
     mov cl, al              ; Preserve the character in CL
     
@@ -201,9 +208,17 @@ Q1 PROC
     ; Load correct answer immediately (ASCII 67 = 'C')
     mov bl, 67              ; Load correct answer 'C' (ASCII code 67) into BL
     
+    ; ========================================
+    ; CRITICAL: Save AL before calling DISPLAY_STRING
+    ; DISPLAY_STRING uses INT 21h which does NOT preserve AL
+    ; ========================================
+    push ax                 ; Save AL (user input) on stack
+    
     ; Display newline after input
     lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
+    call DISPLAY_STRING     ; Display newline (may modify AL)
+    
+    pop ax                  ; Restore AL with original user input
     
     ; ========================================
     ; Check Q1 Answer (Correct answer: C = ASCII 67)
@@ -275,9 +290,17 @@ Q2 PROC
     ; Load correct answer immediately (ASCII 66 = 'B')
     mov bl, 66              ; Load correct answer 'B' (ASCII code 66) into BL
     
+    ; ========================================
+    ; CRITICAL: Save AL before calling DISPLAY_STRING
+    ; DISPLAY_STRING uses INT 21h which does NOT preserve AL
+    ; ========================================
+    push ax                 ; Save AL (user input) on stack
+    
     ; Display newline after input
     lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
+    call DISPLAY_STRING     ; Display newline (may modify AL)
+    
+    pop ax                  ; Restore AL with original user input
     
     ; ========================================
     ; Check Q2 Answer (Correct answer: B = ASCII 66)
