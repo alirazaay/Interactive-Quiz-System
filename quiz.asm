@@ -46,7 +46,7 @@
     ; ========================================
     ; QUESTION 1: Capital of Pakistan
     ; ========================================
-    q1_text db "Q1: What is the capital of Pakistan?$"
+    q1_text db "What is the capital of Pakistan?$"
     q1_optA db "A) Lahore$"
     q1_optB db "B) Karachi$"
     q1_optC db "C) Islamabad$"
@@ -56,7 +56,7 @@
     ; ========================================
     ; QUESTION 2: 8086 Programming Language
     ; ========================================
-    q2_text db "Q2: Which language is used for 8086 programming?$"
+    q2_text db "Which language is used for 8086 programming?$"
     q2_optA db "A) Python$"
     q2_optB db "B) Assembly$"
     q2_optC db "C) Java$"
@@ -66,7 +66,7 @@
     ; ========================================
     ; QUESTION 3: CPU Register
     ; ========================================
-    q3_text db "Q3: Which of these is a CPU register?$"
+    q3_text db "Which of these is a CPU register?$"
     q3_optA db "A) AX$"
     q3_optB db "B) RAM$"
     q3_optC db "C) Disk$"
@@ -76,7 +76,7 @@
     ; ========================================
     ; QUESTION 4: Memory Model
     ; ========================================
-    q4_text db "Q4: Which memory model has most code/data space?$"
+    q4_text db "Which memory model has most code/data space?$"
     q4_optA db "A) Tiny$"
     q4_optB db "B) Small$"
     q4_optC db "C) Medium$"
@@ -86,7 +86,7 @@
     ; ========================================
     ; QUESTION 5: INT 21h Function
     ; ========================================
-    q5_text db "Q5: Which INT 21h function reads a character?$"
+    q5_text db "Which INT 21h function reads a character?$"
     q5_optA db "A) 09h$"
     q5_optB db "B) 02h$"
     q5_optC db "C) 01h$"
@@ -96,7 +96,7 @@
     ; ========================================
     ; QUESTION 6: ASCII Value of 'A'
     ; ========================================
-    q6_text db "Q6: What is the ASCII value of uppercase 'A'?$"
+    q6_text db "What is the ASCII value of uppercase 'A'?$"
     q6_optA db "A) 61$"
     q6_optB db "B) 65$"
     q6_optC db "C) 97$"
@@ -106,7 +106,7 @@
     ; ========================================
     ; QUESTION 7: DOS Interrupt Number
     ; ========================================
-    q7_text db "Q7: Which interrupt number is for DOS services?$"
+    q7_text db "Which interrupt number is for DOS services?$"
     q7_optA db "A) 21h$"
     q7_optB db "B) 10h$"
     q7_optC db "C) 13h$"
@@ -116,7 +116,7 @@
     ; ========================================
     ; QUESTION 8: Segment:Offset Format
     ; ========================================
-    q8_text db "Q8: What does segment:offset address mean?$"
+    q8_text db "What does segment:offset address mean?$"
     q8_optA db "A) 8-bit:8-bit$"
     q8_optB db "B) 32-bit:32-bit$"
     q8_optC db "C) 16-bit:16-bit$"
@@ -126,7 +126,7 @@
     ; ========================================
     ; QUESTION 9: Stack Growth Direction
     ; ========================================
-    q9_text db "Q9: In which direction does the stack grow?$"
+    q9_text db "In which direction does the stack grow?$"
     q9_optA db "A) Upward$"
     q9_optB db "B) Forward$"
     q9_optC db "C) Backward$"
@@ -136,7 +136,7 @@
     ; ========================================
     ; QUESTION 10: MOV Instruction Limitation
     ; ========================================
-    q10_text db "Q10: MOV cannot directly move data...?$"
+    q10_text db "MOV cannot directly move data...?$"
     q10_optA db "A) Register to Register$"
     q10_optB db "B) Memory to Memory$"
     q10_optC db "C) Register to Memory$"
@@ -247,12 +247,12 @@ GET_INPUT ENDP
 ; PROCEDURE: CHECK_ANSWER
 ; Purpose: Compare user answer with correct answer
 ; Input: AL = user's answer (A-D)
-;        BL = correct answer (A-D)
+;        DL = correct answer (A-D)
 ; Output: Updates score if correct
 ; Preserves: All registers
 ; ============================================================
 CHECK_ANSWER PROC
-    cmp al, bl              ; Compare answers
+    cmp al, dl              ; Compare answers
     je ANSWER_CORRECT       ; If equal, answer is correct
     jne ANSWER_WRONG        ; If not equal, answer is wrong
     
@@ -295,15 +295,53 @@ DISPLAY_QUESTION PROC
     call DISPLAY_STRING
     
     ; ========================================
+    ; Dynamic Question Numbering
+    ; ========================================
+    mov dl, 'Q'             ; Output 'Q'
+    mov ah, 02h
+    int 21h
+    
+    mov ax, bx              ; AX = question index (0-9)
+    inc ax                  ; AX = question number (1-10)
+    
+    cmp ax, 10              ; Is it 10?
+    jne SINGLE_DIGIT        ; If not 10, print single digit
+    
+    ; Print '1'
+    mov dl, '1'
+    mov ah, 02h
+    int 21h
+    
+    ; Print '0'
+    mov dl, '0'
+    jmp PRINT_COLON_AND_SPACE
+    
+SINGLE_DIGIT:
+    add al, '0'             ; Convert 1-9 to ASCII
+    mov dl, al
+    
+PRINT_COLON_AND_SPACE:
+    mov ah, 02h
+    int 21h                 ; Print digit ('0' or 1-9)
+    
+    mov dl, ':'             ; Output ':'
+    mov ah, 02h
+    int 21h
+    
+    mov dl, ' '             ; Output space
+    mov ah, 02h
+    int 21h
+    
+    ; ========================================
     ; Get question text address from lookup table
     ; Use: SI = offset, BX = base address
     ; ========================================
     mov si, bx              ; SI = question index
     shl si, 1               ; SI = SI*2 (convert index to word offset)
     
-    ; Get Option A address (q_optAs table)
-    lea bx, q_texts         ; BX = address of q_texts array (valid: LEA with offset)
-    mov dx, [bx + si]       ; DX = q_texts[index] - VALID: [BX + SI] is allowed
+    ; Get Option A address (q_texts table)
+    lea bx, q_texts         ; BX = address of q_texts array
+    mov dx, [bx + si]       ; DX = q_texts[index]
     call DISPLAY_STRING     ; Display question
     
     lea dx, newline
@@ -358,8 +396,9 @@ QUIZ_LOOP PROC
     mov cx, 0              ; CX = question counter (0-9)
     
 LOOP_QUESTIONS:
-    cmp cx, 10             ; Are we done with all 10 questions?
-    jge LOOP_END           ; If CX >= 10, exit loop
+    mov al, total_questions
+    cmp cl, al             ; Are we done with all questions?
+    jge LOOP_END           ; If CX >= total_questions, exit loop
     
     ; ========================================
     ; Display current question
@@ -388,10 +427,10 @@ LOOP_QUESTIONS:
     ; ========================================
     mov si, cx             ; SI = question index
     lea bx, q_answers      ; BX = address of q_answers array
-    mov bl, [bx + si]      ; BL = correct answer for question CX
+    mov dl, [bx + si]      ; DL = correct answer for question CX (prevents BX corruption)
     
     ; ========================================
-    ; Check answer (AL = user input, BL = correct answer)
+    ; Check answer (AL = user input, DL = correct answer)
     ; ========================================
     call CHECK_ANSWER
     
@@ -517,376 +556,3 @@ main PROC
 main ENDP
 
 END main                    ; End of program
-
-; ============================================================
-; PROCEDURE: DISPLAY_STRING
-; Purpose: Display a string on screen using INT 21h (AH=09h)
-; Input: DX = address of string to display (must be $-terminated)
-; Output: None
-; Modifies: AH register
-; ============================================================
-DISPLAY_STRING PROC
-    mov ah, 09h             ; Function 09h: Display string
-    int 21h                 ; Call DOS interrupt to display string
-    ret                     ; Return to caller
-DISPLAY_STRING ENDP
-
-; ============================================================
-; PROCEDURE: GET_INPUT
-; Purpose: Read a single character from input and convert to uppercase
-; Input: None
-; Output: AL = character read from input (converted to uppercase if lowercase)
-; Modifies: AH, AL, CL registers
-; ============================================================
-GET_INPUT PROC
-READ_CHAR:
-    mov ah, 01h             ; Function 01h: Read character from input
-    int 21h                 ; Call DOS interrupt (result in AL, auto-echoed)
-    
-    ; ========================================
-    ; Skip Enter key (13 = CR) if encountered
-    ; ========================================
-    cmp al, 13              ; Is it Enter key (carriage return)?
-    je READ_CHAR            ; If yes, read next character
-    
-    ; ========================================
-    ; Convert lowercase to uppercase
-    ; Explicit logic: if AL is 'a'-'z', subtract 32
-    ; ========================================
-    mov cl, al              ; Preserve the character in CL
-    
-    ; Check if it's lowercase 'a' (97)
-    cmp cl, 97              ; Is character code 97 or higher?
-    jb NOT_LOWERCASE        ; If below 97, it's not lowercase
-    
-    ; Check if it's lowercase 'z' (122)
-    cmp cl, 122             ; Is character code 122 or lower?
-    ja NOT_LOWERCASE        ; If above 122, it's not lowercase
-    
-    ; It's between 'a' (97) and 'z' (122), so convert to uppercase
-    sub cl, 32              ; Subtract 32 to convert: 'a'(97)-32='A'(65)
-    mov al, cl              ; Move converted character back to AL
-    jmp INPUT_DONE
-    
-NOT_LOWERCASE:
-    mov al, cl              ; If no conversion needed, keep original character
-    
-INPUT_DONE:
-    ret                     ; Return to caller with character in AL
-GET_INPUT ENDP
-
-; ============================================================
-; PROCEDURE: CHECK_ANSWER
-; Purpose: Check user answer against correct answer
-; Input: AL = user's answer
-;        BL = correct answer
-; Output: None (modifies score and displays result)
-; Modifies: AH, AL, DX registers
-; ============================================================
-CHECK_ANSWER PROC
-    cmp al, bl              ; Compare user answer (AL) with correct answer (BL)
-    je ANSWER_CORRECT       ; Jump if correct
-    jne ANSWER_WRONG        ; Jump if wrong
-    
-ANSWER_CORRECT:
-    ; ========================================
-    ; Display Correct Answer Message
-    ; ========================================
-    lea dx, correctMsg      ; Load address of correct message
-    call DISPLAY_STRING     ; Call DISPLAY_STRING procedure
-    
-    ; Display newline
-    lea dx, newline         ; Load address of newline
-    call DISPLAY_STRING     ; Call DISPLAY_STRING procedure
-    
-    ; Increment score for correct answer
-    mov al, [score]         ; Load current score into AL
-    inc al                  ; Increment score (AL = AL + 1)
-    mov [score], al         ; Store updated score back to score variable
-    ret                     ; Return to caller
-    
-ANSWER_WRONG:
-    ; ========================================
-    ; Display Wrong Answer Message
-    ; ========================================
-    lea dx, wrongMsg        ; Load address of wrong message
-    call DISPLAY_STRING     ; Call DISPLAY_STRING procedure
-    
-    ; Display newline
-    lea dx, newline         ; Load address of newline
-    call DISPLAY_STRING     ; Call DISPLAY_STRING procedure
-    ret                     ; Return to caller (without incrementing score)
-    
-CHECK_ANSWER ENDP
-
-; ============================================================
-; PROCEDURE: Q1
-; Purpose: Execute Question 1
-; Input: None
-; Output: None
-; Modifies: Multiple registers (uses PUSH/POP to preserve)
-; ============================================================
-Q1 PROC
-    ; ========================================
-    ; Display Question 1
-    ; ========================================
-    lea dx, question1       ; Load address of question1
-    call DISPLAY_STRING     ; Display question
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    ; ========================================
-    ; Display Q1 Answer Options
-    ; ========================================
-    lea dx, q1_optionA      ; Load address of option A
-    call DISPLAY_STRING     ; Display option
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    lea dx, q1_optionB      ; Load address of option B
-    call DISPLAY_STRING     ; Display option
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    lea dx, q1_optionC      ; Load address of option C
-    call DISPLAY_STRING     ; Display option
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    lea dx, q1_optionD      ; Load address of option D
-    call DISPLAY_STRING     ; Display option
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    ; ========================================
-    ; Display Input Prompt
-    ; ========================================
-    lea dx, inputMsg        ; Load address of input prompt
-    call DISPLAY_STRING     ; Display prompt
-    
-    ; ========================================
-    ; Get User Input for Q1
-    ; ========================================
-    call GET_INPUT          ; Call GET_INPUT (returns converted char in AL)
-    
-    ; Load correct answer immediately (ASCII 67 = 'C')
-    mov bl, 67              ; Load correct answer 'C' (ASCII code 67) into BL
-    
-    ; ========================================
-    ; CRITICAL: Save AL before calling DISPLAY_STRING
-    ; DISPLAY_STRING uses INT 21h which does NOT preserve AL
-    ; ========================================
-    push ax                 ; Save AL (user input) on stack
-    
-    ; Display newline after input
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline (may modify AL)
-    
-    pop ax                  ; Restore AL with original user input
-    
-    ; ========================================
-    ; Check Q1 Answer (Correct answer: C = ASCII 67)
-    ; ========================================
-    call CHECK_ANSWER       ; Call CHECK_ANSWER (compares AL with BL)
-    
-    ret                     ; Return to caller
-Q1 ENDP
-
-; ============================================================
-; PROCEDURE: Q2
-; Purpose: Execute Question 2
-; Input: None
-; Output: None
-; Modifies: Multiple registers (uses PUSH/POP to preserve)
-; ============================================================
-Q2 PROC
-    ; Display newline for spacing
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    ; ========================================
-    ; Display Question 2
-    ; ========================================
-    lea dx, question2       ; Load address of question2
-    call DISPLAY_STRING     ; Display question
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    ; ========================================
-    ; Display Q2 Answer Options
-    ; ========================================
-    lea dx, q2_optionA      ; Load address of option A
-    call DISPLAY_STRING     ; Display option
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    lea dx, q2_optionB      ; Load address of option B
-    call DISPLAY_STRING     ; Display option
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    lea dx, q2_optionC      ; Load address of option C
-    call DISPLAY_STRING     ; Display option
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    lea dx, q2_optionD      ; Load address of option D
-    call DISPLAY_STRING     ; Display option
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    ; ========================================
-    ; Display Input Prompt
-    ; ========================================
-    lea dx, inputMsg        ; Load address of input prompt
-    call DISPLAY_STRING     ; Display prompt
-    
-    ; ========================================
-    ; Get User Input for Q2
-    ; ========================================
-    call GET_INPUT          ; Call GET_INPUT (returns converted char in AL)
-    
-    ; Load correct answer immediately (ASCII 66 = 'B')
-    mov bl, 66              ; Load correct answer 'B' (ASCII code 66) into BL
-    
-    ; ========================================
-    ; CRITICAL: Save AL before calling DISPLAY_STRING
-    ; DISPLAY_STRING uses INT 21h which does NOT preserve AL
-    ; ========================================
-    push ax                 ; Save AL (user input) on stack
-    
-    ; Display newline after input
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline (may modify AL)
-    
-    pop ax                  ; Restore AL with original user input
-    
-    ; ========================================
-    ; Check Q2 Answer (Correct answer: B = ASCII 66)
-    ; ========================================
-    call CHECK_ANSWER       ; Call CHECK_ANSWER (compares AL with BL)
-    
-    ret                     ; Return to caller
-Q2 ENDP
-
-; ============================================================
-; PROCEDURE: DISPLAY_FINAL_RESULTS
-; Purpose: Display final quiz results and score
-; Input: None (accesses score variable)
-; Output: None
-; Modifies: AH, AL, DL registers
-; ============================================================
-DISPLAY_FINAL_RESULTS PROC
-    ; Display newline for spacing
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    ; ========================================
-    ; Display "Quiz Finished!"
-    ; ========================================
-    lea dx, quizFinished    ; Load address of quiz finished message
-    call DISPLAY_STRING     ; Display message
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    ; ========================================
-    ; Display Score Message
-    ; ========================================
-    lea dx, scoreMsg        ; Load address of score message
-    call DISPLAY_STRING     ; Display message
-    
-    ; ========================================
-    ; Convert Score to ASCII and Display
-    ; ========================================
-    mov al, [score]         ; Load score value into AL
-    add al, 30h             ; Add 30h to convert digit to ASCII
-    mov dl, al              ; Move ASCII value to DL for display
-    mov ah, 02h             ; Function 02h: Display single character
-    int 21h                 ; Call DOS interrupt to display the score
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    ret                     ; Return to caller
-DISPLAY_FINAL_RESULTS ENDP
-
-; ============================================================
-; PROCEDURE: main
-; Purpose: Main entry point of the program
-; ============================================================
-main PROC
-    ; ========================================
-    ; Initialize Data Segment Register
-    ; ========================================
-    mov ax, @DATA           ; Load address of data segment into AX
-    mov ds, ax              ; Move it to DS register for string access
-    
-    ; ========================================
-    ; Display Welcome Messages
-    ; ========================================
-    lea dx, msg1            ; Load address of msg1
-    call DISPLAY_STRING     ; Display welcome message
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    lea dx, msg2            ; Load address of msg2
-    call DISPLAY_STRING     ; Display key press prompt
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    ; ========================================
-    ; Wait for user key press
-    ; ========================================
-    call GET_INPUT          ; Call GET_INPUT procedure
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    ; ========================================
-    ; Display Quiz Starting Message
-    ; ========================================
-    lea dx, msg3            ; Load address of msg3
-    call DISPLAY_STRING     ; Display quiz starting message
-    
-    lea dx, newline         ; Load newline address
-    call DISPLAY_STRING     ; Display newline
-    
-    ; ========================================
-    ; Execute Question 1
-    ; ========================================
-    call Q1                 ; Call Q1 procedure
-    
-    ; ========================================
-    ; Execute Question 2
-    ; ========================================
-    call Q2                 ; Call Q2 procedure
-    
-    ; ========================================
-    ; Display Final Results
-    ; ========================================
-    call DISPLAY_FINAL_RESULTS  ; Call DISPLAY_FINAL_RESULTS procedure
-    
-    ; ========================================
-    ; Terminate the program
-    ; ========================================
-    mov ah, 4Ch             ; Function 4Ch: Terminate program
-    mov al, 0               ; Exit code: 0 (successful execution)
-    int 21h                 ; Call DOS interrupt to exit
-    
-main ENDP
-
-END main                    ; End of program, specify main as entry point
-
