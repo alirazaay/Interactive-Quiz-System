@@ -194,6 +194,7 @@ DISPLAY_STRING ENDP
 ;         Repeats if Enter key detected
 ; ============================================================
 GET_INPUT PROC
+    push cx
 READ_CHAR:
     mov ah, 01h             ; Function 01h: Read character from input
     int 21h                 ; DOS auto-echoes the character
@@ -242,6 +243,7 @@ INVALID_INPUT:
     jmp READ_CHAR           ; Read input again
     
 INPUT_DONE:
+    pop cx
     ret                     ; Return with AL = A-D (uppercase)
 GET_INPUT ENDP
 
