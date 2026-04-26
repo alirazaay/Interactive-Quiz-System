@@ -64,38 +64,29 @@ DISPLAY_STRING ENDP
 
 ; ============================================================
 ; PROCEDURE: GET_INPUT
-; Purpose: Read a single character from input
+; Purpose: Read a single character from input and convert to uppercase
 ; Input: None
 ; Output: AL = character read from input (converted to uppercase if lowercase)
 ; Modifies: AH, AL registers
 ; ============================================================
 GET_INPUT PROC
     mov ah, 01h             ; Function 01h: Read character from input
-    int 21h                 ; Call DOS interrupt (result in AL)
+    int 21h                 ; Call DOS interrupt (result in AL, auto-echoed)
     
     ; ========================================
     ; Convert lowercase to uppercase
     ; ========================================
-    cmp al, 'a'             ; Compare AL with 'a' (61h / 97 decimal)
-    jb NO_CONVERT           ; Jump if Below 'a' (unsigned comparison)
-    cmp al, 'z'             ; Compare AL with 'z' (7Ah / 122 decimal)
-    ja NO_CONVERT           ; Jump if Above 'z' (unsigned comparison)
-    sub al, 20h             ; If between 'a' and 'z', subtract 20h (32 decimal)
-                            ; This converts to uppercase:
-                            ; 'a' (61h) - 20h = 'A' (41h)
-                            ; 'b' (62h) - 20h = 'B' (42h)
-                            ; 'z' (7Ah) - 20h = 'Z' (5Ah)
-NO_CONVERT:
-    ; ========================================
-    ; Display the converted character for debug
-    ; ========================================
-    mov dl, al              ; Move the character to DL for display
-    push ax                 ; Preserve AX
-    mov ah, 02h             ; Function 02h: Display single character
-    int 21h                 ; Display the character (for verification)
-    pop ax                  ; Restore AX (AL now has the converted character)
+    cmp al, 'a'             ; Compare AL with 'a' (ASCII 97 / 0x61)
+    jb SKIP_CONVERT         ; Jump if Below 'a' (unsigned comparison)
+    cmp al, 'z'             ; Compare AL with 'z' (ASCII 122 / 0x7A)
+    ja SKIP_CONVERT         ; Jump if Above 'z' (unsigned comparison)
     
-    ret                     ; Return to caller with converted character in AL
+    ; Character is between 'a' and 'z', so convert to uppercase
+    sub al, 20h             ; Subtract 32 to convert to uppercase
+                            ; 'a'(97)-32='A'(65), 'b'(98)-32='B'(66), etc.
+    
+SKIP_CONVERT:
+    ret                     ; Return to caller with character in AL
 GET_INPUT ENDP
 
 ; ============================================================
@@ -195,8 +186,10 @@ Q1 PROC
     ; ========================================
     ; Get User Input for Q1
     ; ========================================
-    call GET_INPUT          ; Call GET_INPUT procedure
-                            ; (returns uppercase answer in AL)
+    call GET_INPUT          ; Call GET_INPUT (returns converted char in AL)
+    
+    ; Load correct answer immediately
+    mov bl, 'C'             ; Load correct answer 'C' into BL
     
     ; Display newline after input
     lea dx, newline         ; Load newline address
@@ -205,10 +198,7 @@ Q1 PROC
     ; ========================================
     ; Check Q1 Answer (Correct answer: C)
     ; ========================================
-    push ax                 ; Preserve AL register
-    mov bl, 'C'             ; Load correct answer 'C' into BL
-    pop ax                  ; Restore AL (user's answer, now uppercase)
-    call CHECK_ANSWER       ; Call CHECK_ANSWER procedure
+    call CHECK_ANSWER       ; Call CHECK_ANSWER (compares AL with BL)
     
     ret                     ; Return to caller
 Q1 ENDP
@@ -270,8 +260,10 @@ Q2 PROC
     ; ========================================
     ; Get User Input for Q2
     ; ========================================
-    call GET_INPUT          ; Call GET_INPUT procedure
-                            ; (returns uppercase answer in AL)
+    call GET_INPUT          ; Call GET_INPUT (returns converted char in AL)
+    
+    ; Load correct answer immediately
+    mov bl, 'B'             ; Load correct answer 'B' into BL
     
     ; Display newline after input
     lea dx, newline         ; Load newline address
@@ -280,10 +272,7 @@ Q2 PROC
     ; ========================================
     ; Check Q2 Answer (Correct answer: B)
     ; ========================================
-    push ax                 ; Preserve AL register
-    mov bl, 'B'             ; Load correct answer 'B' into BL
-    pop ax                  ; Restore AL (user's answer, now uppercase)
-    call CHECK_ANSWER       ; Call CHECK_ANSWER procedure
+    call CHECK_ANSWER       ; Call CHECK_ANSWER (compares AL with BL)
     
     ret                     ; Return to caller
 Q2 ENDP
