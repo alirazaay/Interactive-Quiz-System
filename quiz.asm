@@ -67,7 +67,7 @@ DISPLAY_STRING ENDP
 ; Purpose: Read a single character from input and convert to uppercase
 ; Input: None
 ; Output: AL = character read from input (converted to uppercase if lowercase)
-; Modifies: AH, AL registers
+; Modifies: AH, AL, CL registers
 ; ============================================================
 GET_INPUT PROC
     mov ah, 01h             ; Function 01h: Read character from input
@@ -75,17 +75,27 @@ GET_INPUT PROC
     
     ; ========================================
     ; Convert lowercase to uppercase
+    ; Explicit logic: if AL is 'a'-'z', subtract 20h
     ; ========================================
-    cmp al, 'a'             ; Compare AL with 'a' (ASCII 97 / 0x61)
-    jb SKIP_CONVERT         ; Jump if Below 'a' (unsigned comparison)
-    cmp al, 'z'             ; Compare AL with 'z' (ASCII 122 / 0x7A)
-    ja SKIP_CONVERT         ; Jump if Above 'z' (unsigned comparison)
+    mov cl, al              ; Preserve the character in CL
     
-    ; Character is between 'a' and 'z', so convert to uppercase
-    sub al, 20h             ; Subtract 32 to convert to uppercase
-                            ; 'a'(97)-32='A'(65), 'b'(98)-32='B'(66), etc.
+    ; Check if it's lowercase 'a' (97)
+    cmp cl, 97              ; Is character code 97 or higher?
+    jb NOT_LOWERCASE        ; If below 97, it's not lowercase
     
-SKIP_CONVERT:
+    ; Check if it's lowercase 'z' (122)
+    cmp cl, 122             ; Is character code 122 or lower?
+    ja NOT_LOWERCASE        ; If above 122, it's not lowercase
+    
+    ; It's between 'a' (97) and 'z' (122), so convert to uppercase
+    sub cl, 32              ; Subtract 32 to convert: 'a'(97)-32='A'(65)
+    mov al, cl              ; Move converted character back to AL
+    jmp INPUT_DONE
+    
+NOT_LOWERCASE:
+    mov al, cl              ; If no conversion needed, keep original character
+    
+INPUT_DONE:
     ret                     ; Return to caller with character in AL
 GET_INPUT ENDP
 
@@ -188,15 +198,15 @@ Q1 PROC
     ; ========================================
     call GET_INPUT          ; Call GET_INPUT (returns converted char in AL)
     
-    ; Load correct answer immediately
-    mov bl, 'C'             ; Load correct answer 'C' into BL
+    ; Load correct answer immediately (ASCII 67 = 'C')
+    mov bl, 67              ; Load correct answer 'C' (ASCII code 67) into BL
     
     ; Display newline after input
     lea dx, newline         ; Load newline address
     call DISPLAY_STRING     ; Display newline
     
     ; ========================================
-    ; Check Q1 Answer (Correct answer: C)
+    ; Check Q1 Answer (Correct answer: C = ASCII 67)
     ; ========================================
     call CHECK_ANSWER       ; Call CHECK_ANSWER (compares AL with BL)
     
@@ -262,15 +272,15 @@ Q2 PROC
     ; ========================================
     call GET_INPUT          ; Call GET_INPUT (returns converted char in AL)
     
-    ; Load correct answer immediately
-    mov bl, 'B'             ; Load correct answer 'B' into BL
+    ; Load correct answer immediately (ASCII 66 = 'B')
+    mov bl, 66              ; Load correct answer 'B' (ASCII code 66) into BL
     
     ; Display newline after input
     lea dx, newline         ; Load newline address
     call DISPLAY_STRING     ; Display newline
     
     ; ========================================
-    ; Check Q2 Answer (Correct answer: B)
+    ; Check Q2 Answer (Correct answer: B = ASCII 66)
     ; ========================================
     call CHECK_ANSWER       ; Call CHECK_ANSWER (compares AL with BL)
     
