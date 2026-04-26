@@ -179,8 +179,10 @@
 ; Preserves: All registers except used in INT 21h
 ; ============================================================
 DISPLAY_STRING PROC
+    push ax
     mov ah, 09h             ; Function 09h: Display string
     int 21h                 ; Call DOS interrupt
+    pop ax
     ret
 DISPLAY_STRING ENDP
 
@@ -252,6 +254,9 @@ GET_INPUT ENDP
 ; Preserves: All registers
 ; ============================================================
 CHECK_ANSWER PROC
+    push ax
+    push dx
+    
     cmp al, dl              ; Compare answers
     je ANSWER_CORRECT       ; If equal, answer is correct
     jne ANSWER_WRONG        ; If not equal, answer is wrong
@@ -266,15 +271,18 @@ ANSWER_CORRECT:
     mov al, [score]
     inc al
     mov [score], al
-    ret
+    jmp END_CHECK
     
 ANSWER_WRONG:
     lea dx, wrongMsg
     call DISPLAY_STRING
     lea dx, newline
     call DISPLAY_STRING
-    ret
     
+END_CHECK:
+    pop dx
+    pop ax
+    ret
 CHECK_ANSWER ENDP
 
 ; ============================================================
@@ -396,8 +404,9 @@ QUIZ_LOOP PROC
     mov cx, 0              ; CX = question counter (0-9)
     
 LOOP_QUESTIONS:
+    mov ah, 0              ; Clear AH to safely compare full AX with CX
     mov al, total_questions
-    cmp cl, al             ; Are we done with all questions?
+    cmp cx, ax             ; Are we done with all questions?
     jge LOOP_END           ; If CX >= total_questions, exit loop
     
     ; ========================================
@@ -432,7 +441,9 @@ LOOP_QUESTIONS:
     ; ========================================
     ; Check answer (AL = user input, DL = correct answer)
     ; ========================================
+    push dx                ; Save correct answer
     call CHECK_ANSWER
+    pop dx                 ; Restore correct answer
     
     ; ========================================
     ; Move to next question
